@@ -4,6 +4,9 @@ import com.example.springrealworld.persistance.models.Task;
 import com.example.springrealworld.domain.services.TaskService;
 import com.example.springrealworld.persistance.repositories.TaskRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,12 +20,14 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class TaskController {
     private final TaskService taskService;
-    private final TaskRepository taskRepository;
     @GetMapping
-    public ResponseEntity<List<Task>> getTasks( @RequestParam(required = false) Boolean status) {
-        List<Task> tasks;
-        tasks = status != null ? taskRepository.findByStatus(status) : taskService.getAllTasks(); //Utiliser le service et ajouter la logique dedans
-        return tasks.isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok(tasks);
+    public Page<Task> getTasks(
+            @RequestParam(required = false) Boolean status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "3") int size
+            ) {
+            Pageable paging = PageRequest.of(page, size);
+            return taskService.getTasks(status,paging);
     }
    @GetMapping("/{id}")
     public Optional<Task> getTaskById(@PathVariable("id") Long id) {
